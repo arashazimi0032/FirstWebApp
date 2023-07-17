@@ -11,7 +11,5 @@ namespace FirstWebApp.Interfaces
         bool Update(Club club);
         bool Delete(Club club);
         bool Save();
-
-        
     }
 }
