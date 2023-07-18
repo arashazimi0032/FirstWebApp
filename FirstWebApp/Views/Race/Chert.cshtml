@@ -1,0 +1,43 @@
+﻿@model IEnumerable<Race>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+@foreach (var item in Model)
+{
+    <!-- Page Content -->
+    <div class="container">
+
+        <!-- Portfolio Item Heading -->
+        <h1 class="my-4">
+            Page Heading
+            <small>Secondary Text</small>
+        </h1>
+
+        <!-- Portfolio Item Row -->
+        <div class="row">
+
+            <div class="col-md-4">
+                <h3 class="my-3">@item.Title</h3>
+                <p>@item.Description</p>
+                <h3 class="my-3">Location</h3>
+                <ul>
+                    <li>@item.Address.City</li>
+                    <li>@item.Address.State</li>
+                    <li>@item.RaceCategory</li>
+                </ul>
+            </div>
+
+        </div>
+        <!-- /.row -->
+
+    </div>
+
+}
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}

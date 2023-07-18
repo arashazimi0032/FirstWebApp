@@ -1,6 +1,7 @@
 ﻿using FirstWebApp.Data;
 using FirstWebApp.Interfaces;
 using FirstWebApp.Models;
+using FirstWebApp.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,12 @@ namespace FirstWebApp.Controllers
             return View(races);
         }
 
+        public async Task<IActionResult> Detail(int id)
+        {
+            Race race = await _raceRepository.GetRaceByIdAsync(id);
+            return View(race);
+        }
+
         public IActionResult Create()
         {
             return View();
@@ -36,9 +43,9 @@ namespace FirstWebApp.Controllers
             return RedirectToAction("Index");
         }
 
-        public async Task<IActionResult> Detail(int id) 
-        { 
-            Race race = await _raceRepository.GetRaceByIdAsync(id);
+        public async Task<IActionResult> Chert(string city)
+        {
+            IEnumerable<Race> race = await _raceRepository.GetRaceByCity(city);
             return View(race);
         }
     }
