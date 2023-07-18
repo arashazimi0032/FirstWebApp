@@ -35,7 +35,7 @@ namespace FirstWebApp.Repository
             return await _context.Races.Where(c => c.Address.City.Equals(city)).ToListAsync();
         }
 
-        public async Task<Race> GetRaceById(int id)
+        public async Task<Race> GetRaceByIdAsync(int id)
         {
             return await _context.Races.Include(a => a.Address).FirstOrDefaultAsync(c => c.Id == id);
         }
