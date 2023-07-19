@@ -1,19 +1,20 @@
-﻿using FirstWebApp.Data;
-using FirstWebApp.Interfaces;
+﻿using FirstWebApp.Interfaces;
 using FirstWebApp.Models;
 using FirstWebApp.Repository;
+using FirstWebApp.ViewModels;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FirstWebApp.Controllers
 {
     public class RaceController : Controller
     {
         private readonly IRaceRepository _raceRepository;
+        private readonly IPhotoService _photoService;
 
-        public RaceController(IRaceRepository raceRepository)
+        public RaceController(IRaceRepository raceRepository, IPhotoService photoService)
         {
             _raceRepository = raceRepository;
+            _photoService = photoService;
         }
         public async Task<IActionResult> Index()
         {
@@ -33,16 +34,36 @@ namespace FirstWebApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Race race)
+        public async Task<IActionResult> Create(CreateRaceViewModel raceVM)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                return View(race);
-            }
-            _raceRepository.Add(race);
-            return RedirectToAction("Index");
-        }
+                var result = await _photoService.AddPhotoAsync(raceVM.Image);
+                string defaultImage = "./images/No Image.png";
+                string ImageUrlString = result.Url != null ? result.Url.ToString() : defaultImage;
 
+                var race = new Race
+                {
+                    Title = raceVM.Title,
+                    Description = raceVM.Description,
+                    Image = ImageUrlString,
+                    Address = new Address
+                    {
+                        Street = raceVM.Address.Street,
+                        City = raceVM.Address.City,
+                        State = raceVM.Address.State
+                    },
+                };
+                _raceRepository.Add(race);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                ModelState.AddModelError("", "photo upload failed.");
+            }
+            return View(raceVM);
+        }
+        
         public async Task<IActionResult> Chert(string city)
         {
             IEnumerable<Race> race = await _raceRepository.GetRaceByCity(city);
