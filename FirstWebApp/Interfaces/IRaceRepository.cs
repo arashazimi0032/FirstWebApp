@@ -10,6 +10,7 @@ namespace FirstWebApp.Interfaces
         bool Save();
         Task<IEnumerable<Race>> GetAll();
         Task<Race> GetRaceByIdAsync(int id);
+        Task<Race> GetRaceByIdAsyncNoTracking(int id);
         Task<IEnumerable<Race>> GetRaceByCity(string city);
     }
 }

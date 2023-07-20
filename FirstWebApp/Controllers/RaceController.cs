@@ -1,4 +1,5 @@
-﻿using FirstWebApp.Interfaces;
+﻿using CloudinaryDotNet.Actions;
+using FirstWebApp.Interfaces;
 using FirstWebApp.Models;
 using FirstWebApp.Repository;
 using FirstWebApp.ViewModels;
@@ -64,10 +65,64 @@ namespace FirstWebApp.Controllers
             return View(raceVM);
         }
         
-        public async Task<IActionResult> Chert(string city)
+        public async Task<IActionResult> Edit(int id)
         {
-            IEnumerable<Race> race = await _raceRepository.GetRaceByCity(city);
-            return View(race);
+            Race race = await _raceRepository.GetRaceByIdAsync(id);
+            if (race == null) return View("Error");
+            EditRaceViewModel raceVM = new EditRaceViewModel
+            {
+                Title = race.Title, 
+                Description = race.Description,
+                Address = race.Address,
+                URL = race.Image,
+                AddressId = race.AddressId,
+                RaceCategory = race.RaceCategory
+            };
+            return View(raceVM);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, EditRaceViewModel raceVM)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("", "Failed to edit race.");
+                return View(raceVM);
+            }
+
+            Race race = await _raceRepository.GetRaceByIdAsyncNoTracking(id);
+            if (race != null)
+            {
+                try
+                {
+                    await _photoService.DetelePhotoAsync(race.Image);
+                }
+                catch(Exception ex)
+                {
+                    ModelState.AddModelError("", "Could not delete photo.");
+                    return View(raceVM);
+                }
+
+                ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(raceVM.Image);
+                string defaultImage = "./images/No Image.png";
+                string ImageUrlString = uploadResult.Url != null ? uploadResult.Url.ToString() : defaultImage;
+                Race raceNew = new Race
+                {
+                    Id = id,
+                    Title = raceVM.Title,
+                    Description = raceVM.Description,
+                    Image = ImageUrlString,
+                    Address = raceVM.Address,
+                    AddressId = race.AddressId,
+                    RaceCategory = raceVM.RaceCategory
+                };
+                _raceRepository.Update(raceNew);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View(raceVM);
+            }
         }
     }
 }

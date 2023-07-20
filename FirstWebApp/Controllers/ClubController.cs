@@ -1,4 +1,5 @@
-﻿using FirstWebApp.Data;
+﻿using CloudinaryDotNet.Actions;
+using FirstWebApp.Data;
 using FirstWebApp.Interfaces;
 using FirstWebApp.Models;
 using FirstWebApp.Repository;
@@ -55,6 +56,7 @@ namespace FirstWebApp.Controllers
                         City = clubVM.Address.City,
                         State = clubVM.Address.State
                     },
+                    ClubCategory = clubVM.ClubCategory
                 };
                 _clubRepository.Add(club);
                 return RedirectToAction("Index");
@@ -66,10 +68,65 @@ namespace FirstWebApp.Controllers
             return View(clubVM);
         }
 
-        public async Task<IActionResult> Chert(string city)
+        public async Task<IActionResult> Edit(int id)
         {
-            IEnumerable<Club> clubs = await _clubRepository.GetClubByCity(city);
-            return View(clubs);
+            Club club = await _clubRepository.GetByIdAsync(id);
+            if (club == null) return View("Error");
+            EditClubViewModel clubVM = new EditClubViewModel
+            {
+                Title = club.Title, 
+                Description = club.Description, 
+                URL = club.Image, 
+                AddressId = club.AddressId,
+                Address = club.Address,
+                ClubCategory = club.ClubCategory
+            };
+            return View(clubVM);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(int id, EditClubViewModel clubVM)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("", "Failed to edit club.");
+                return View(clubVM);
+            }
+
+            Club club = await _clubRepository.GetByIdAsyncNoTracking(id);
+            if (club != null)
+            {
+                try
+                {
+                    await _photoService.DetelePhotoAsync(club.Image);
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Could not delete photo.");
+                    return View(clubVM);
+                }
+                ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(clubVM.Image);
+                string defaultImage = "./images/No Image.png";
+                string ImageUrlString = uploadResult.Url != null ? uploadResult.Url.ToString() : defaultImage;
+
+                Club clubNew = new Club
+                {
+                    Id = id,
+                    Title = clubVM.Title,
+                    Description = clubVM.Description,
+                    ClubCategory = clubVM.ClubCategory,
+                    Address = clubVM.Address,
+                    AddressId = club.AddressId,
+                    Image = ImageUrlString,
+                };
+                _clubRepository.Update(clubNew);
+                return RedirectToAction("Index");
+            }
+            else
+            {
+                return View(clubVM);
+            }
+        }
+
     }
 }
