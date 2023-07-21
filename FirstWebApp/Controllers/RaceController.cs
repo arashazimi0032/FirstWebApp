@@ -112,7 +112,13 @@ namespace FirstWebApp.Controllers
                     Title = raceVM.Title,
                     Description = raceVM.Description,
                     Image = ImageUrlString,
-                    Address = raceVM.Address,
+                    Address = new Address
+                    {
+                        Id = race.Address.Id,
+                        Street = raceVM.Address.Street,
+                        City = raceVM.Address.City,
+                        State = raceVM.Address.State,
+                    },
                     AddressId = race.AddressId,
                     RaceCategory = raceVM.RaceCategory
                 };
@@ -124,5 +130,30 @@ namespace FirstWebApp.Controllers
                 return View(raceVM);
             }
         }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            Race race = await _raceRepository.GetRaceByIdAsync(id);
+            if (race == null) return View("Error");
+            return View(race);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteRace(int id)
+        {
+            Race race = await _raceRepository.GetRaceByIdAsync(id);
+            if (race == null) return View("Error");
+            try
+            {
+                await _photoService.DetelePhotoAsync(race.Image);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Could not delete photo.");
+            }
+            _raceRepository.Delete(race);
+            return RedirectToAction("Index");
+        }
+
     }
 }

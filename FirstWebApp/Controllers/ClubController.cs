@@ -115,7 +115,13 @@ namespace FirstWebApp.Controllers
                     Title = clubVM.Title,
                     Description = clubVM.Description,
                     ClubCategory = clubVM.ClubCategory,
-                    Address = clubVM.Address,
+                    Address = new Address
+                    {
+                        Id = club.Address.Id,
+                        Street = clubVM.Address.Street, 
+                        State = clubVM.Address.State,
+                        City = clubVM.Address.City,
+                    },
                     AddressId = club.AddressId,
                     Image = ImageUrlString,
                 };
@@ -126,6 +132,30 @@ namespace FirstWebApp.Controllers
             {
                 return View(clubVM);
             }
+        }
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            Club Club = await _clubRepository.GetByIdAsync(id);
+            if (Club == null) return View("Error");
+            return View(Club);
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteClub(int id)
+        {
+            Club Club = await _clubRepository.GetByIdAsync(id);
+            if (Club == null) return View("Error");
+            try
+            {
+                await _photoService.DetelePhotoAsync(Club.Image);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Could not delete photo.");
+            }
+            _clubRepository.Delete(Club);
+            return RedirectToAction("Index");
         }
 
     }
