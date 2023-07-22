@@ -32,7 +32,7 @@ namespace FirstWebApp.Controllers
 
             if (user != null)
             {
-                bool passwordCheck = await _userManager.CheckPasswordAsync(user, loginViewModel.Password);
+                var passwordCheck = await _userManager.CheckPasswordAsync(user, loginViewModel.Password);
                 if (passwordCheck)
                 {
                     var result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, false, false);
@@ -71,12 +71,20 @@ namespace FirstWebApp.Controllers
                 UserName = registerViewModel.EmailAddress
             };
 
-            var newUserResponse = await _userManager.CreateAsync(newAppUser);
+            var newUserResponse = await _userManager.CreateAsync(newAppUser, registerViewModel.Password);
+
             if (newUserResponse.Succeeded)
             {
                 await _userManager.AddToRoleAsync(newAppUser, UserRoles.User);
+                return RedirectToAction("Index", "Race");
             }
-            return RedirectToAction("Index", "Race");
+            int id = 1;
+            foreach (var e in newUserResponse.Errors)
+            {
+                TempData["Error"] += id.ToString() + " - " + e.Description + " , ";
+                id++;
+            }
+            return View(registerViewModel);
         }
 
         [HttpPost]

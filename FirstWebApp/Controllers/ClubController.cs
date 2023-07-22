@@ -13,11 +13,13 @@ namespace FirstWebApp.Controllers
     {
         private readonly IClubRepository _clubRepository;
         private readonly IPhotoService _photoService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public ClubController(IClubRepository clubRepository, IPhotoService photoService)
+        public ClubController(IClubRepository clubRepository, IPhotoService photoService, IHttpContextAccessor httpContextAccessor)
         {
             _clubRepository = clubRepository;
             _photoService = photoService;
+            _httpContextAccessor = httpContextAccessor;
         }
         public async Task<IActionResult> Index()
         {
@@ -33,7 +35,9 @@ namespace FirstWebApp.Controllers
 
         public IActionResult Create()
         {
-            return View();
+            var curUserId = _httpContextAccessor.HttpContext.User.GetUserId();
+            CreateClubViewModel createClubViewModel = new CreateClubViewModel { AppUserId = curUserId };
+            return View(createClubViewModel);
         }
 
         [HttpPost]
@@ -50,6 +54,7 @@ namespace FirstWebApp.Controllers
                     Title = clubVM.Title,
                     Description = clubVM.Description,
                     Image = ImageUrlString,
+                    AppUserId = clubVM.AppUserId,
                     Address = new Address
                     {
                         Street = clubVM.Address.Street,
