@@ -28,19 +28,23 @@ namespace FirstWebApp.Services
         public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
         {
             var uploadResult = new ImageUploadResult();
-            if (file.Length > 0)
+            if (file != null)
             {
-                using var stream = file.OpenReadStream();
-                var uploadParams = new ImageUploadParams
+                if (file.Length > 0)
                 {
-                    File = new FileDescription(file.FileName, stream), 
-                    Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
-                };
-                if (_cloudinary != null)
-                {
-                    uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                    using var stream = file.OpenReadStream();
+                    var uploadParams = new ImageUploadParams
+                    {
+                        File = new FileDescription(file.FileName, stream),
+                        Transformation = new Transformation().Height(500).Width(500).Crop("fill").Gravity("face")
+                    };
+                    if (_cloudinary != null)
+                    {
+                        uploadResult = await _cloudinary.UploadAsync(uploadParams);
+                    }
                 }
             }
+            
             return uploadResult;
         }
 

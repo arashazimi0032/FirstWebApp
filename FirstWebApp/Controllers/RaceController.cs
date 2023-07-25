@@ -98,19 +98,30 @@ namespace FirstWebApp.Controllers
             Race race = await _raceRepository.GetRaceByIdAsyncNoTracking(id);
             if (race != null)
             {
-                try
+                string ImageUrlString = "./images/No Image.png";
+                if (raceVM.Image != null)
                 {
-                    await _photoService.DetelePhotoAsync(race.Image);
+                    try
+                    {
+                        await _photoService.DetelePhotoAsync(race.Image);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", "Could not delete photo.");
+                        return View(raceVM);
+                    }
+                    ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(raceVM.Image);
+                    ImageUrlString = uploadResult.Url.ToString();
                 }
-                catch(Exception ex)
+                else
                 {
-                    ModelState.AddModelError("", "Could not delete photo.");
-                    return View(raceVM);
+                    if (race.Image != null)
+                    {
+                        ImageUrlString = race.Image;
+                    }
                 }
+                
 
-                ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(raceVM.Image);
-                string defaultImage = "./images/No Image.png";
-                string ImageUrlString = uploadResult.Url != null ? uploadResult.Url.ToString() : defaultImage;
                 Race raceNew = new Race
                 {
                     Id = id,

@@ -101,18 +101,29 @@ namespace FirstWebApp.Controllers
             Club club = await _clubRepository.GetByIdAsyncNoTracking(id);
             if (club != null)
             {
-                try
+                string ImageUrlString = "./images/No Image.png";
+                if (clubVM.Image != null)
                 {
-                    await _photoService.DetelePhotoAsync(club.Image);
+                    try
+                    {
+                        await _photoService.DetelePhotoAsync(club.Image);
+                    }
+                    catch (Exception ex)
+                    {
+                        ModelState.AddModelError("", "Could not delete photo.");
+                        return View(clubVM);
+                    }
+                    ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(clubVM.Image);
+                    ImageUrlString = uploadResult.Url.ToString();
                 }
-                catch (Exception ex)
+                else
                 {
-                    ModelState.AddModelError("", "Could not delete photo.");
-                    return View(clubVM);
+                    if (club.Image != null)
+                    {
+                        ImageUrlString = club.Image;
+                    }
+
                 }
-                ImageUploadResult uploadResult = await _photoService.AddPhotoAsync(clubVM.Image);
-                string defaultImage = "./images/No Image.png";
-                string ImageUrlString = uploadResult.Url != null ? uploadResult.Url.ToString() : defaultImage;
 
                 Club clubNew = new Club
                 {
